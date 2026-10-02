@@ -177,30 +177,24 @@ function setupShaders() {
 // render the loaded model
 function renderTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
-    
-    // =========================================================
-    // 1. Model Matrix for Set 0 (Triangle - Lower Left)
-    // =========================================================
+   
+    // Model Matrix for Set 0 (Triangle - Lower Left)
     var m0 = mat4.create();
-    mat4.translate(m0, m0, [-0.65, -0.25, 0.0]);           // Position in lower-left quadrant
-    mat4.rotateZ(m0, m0, 135 * Math.PI / 180);             // Rotate ~135 degrees
-    mat4.scale(m0, m0, [1.6, 1.6, 1.0]);                   // Scale up to target size
-    mat4.translate(m0, m0, [-0.25, -0.75, 0.0]);           // Center set 0 [0.25, 0.75] at origin
+    mat4.translate(m0, m0, [-0.60, -0.20, 0.0]);          // 4. Move to lower-left location
+    mat4.rotateZ(m0, m0, 135 * Math.PI / 180);            // 3. Rotate 135 degrees
+    mat4.scale(m0, m0, [0.85, 0.85, 1.0]);                // 2. Scale slightly down from original
+    mat4.translate(m0, m0, [-0.25, -0.75, 0.0]);          // 1. Move original mesh center [0.25, 0.75] to (0,0)
     inputTriangles[0].mMatrix = m0;
 
-    // =========================================================
-    // 2. Model Matrix for Set 1 (Square / Diamond - Lower Center)
-    // =========================================================
+    // Model Matrix for Set 1 (Square / Diamond - Lower Center)
     var m1 = mat4.create();
-    mat4.translate(m1, m1, [-0.25, -0.5, 0.0]);            // Position in lower-center area
-    mat4.rotateZ(m1, m1, 45 * Math.PI / 180);              // Rotate 45 degrees to form diamond
-    mat4.scale(m1, m1, [1.8, 1.8, 1.0]);                   // Scale up to target size
-    mat4.translate(m1, m1, [-0.75, -0.25, 0.0]);           // Center set 1 [0.75, 0.25] at origin
+    mat4.translate(m1, m1, [-0.25, -0.40, 0.0]);          // 4. Move to lower-center location
+    mat4.rotateZ(m1, m1, 45 * Math.PI / 180);             // 3. Rotate 45 degrees into diamond
+    mat4.scale(m1, m1, [1.0, 1.0, 1.0]);                  // 2. Keep standard 1.0 scale
+    mat4.translate(m1, m1, [-0.75, -0.25, 0.0]);          // 1. Move original mesh center [0.75, 0.25] to (0,0)
     inputTriangles[1].mMatrix = m1;
 
-    // =========================================================
-    // 3. Render loop
-    // =========================================================
+    // Render loop
     for (var whichTriSet=0; whichTriSet<numTriangleSets; whichTriSet++) { 
         
         // pass modeling matrix for set to shader
