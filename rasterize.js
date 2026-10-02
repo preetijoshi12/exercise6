@@ -198,15 +198,15 @@ function renderTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
     
     // =========================================================
-    // 1. Model Matrix for Set 0 (Triangle - Upper-Left of pair)
+    // 1. Model Matrix for Set 0 (Triangle - Lower Left)
     // =========================================================
     var c0 = getSetCenter(inputTriangles[0]);
     var m0 = mat4.create();
     
-    mat4.translate(m0, m0, [-0.65, -0.20, 0.0]);          // 4. Translate to target region
-    mat4.rotateZ(m0, m0, 135 * Math.PI / 180);            // 3. Rotate 135 degrees
-    mat4.scale(m0, m0, [1.2, 1.2, 1.0]);                  // 2. Scale size
-    mat4.translate(m0, m0, [-c0[0], -c0[1], -c0[2]]);     // 1. Move dynamic center to origin
+    mat4.translate(m0, m0, [-0.65, -0.32, 0.0]);          // 4. Translate to lower-left
+    mat4.rotateZ(m0, m0, 135 * Math.PI / 180);            // 3. Rotate 135 deg
+    mat4.scale(m0, m0, [0.85, 0.85, 1.0]);                // 2. Scale down triangle
+    mat4.translate(m0, m0, [-c0[0], -c0[1], -c0[2]]);     // 1. Center at origin
     
     inputTriangles[0].mMatrix = m0;
 
@@ -216,10 +216,10 @@ function renderTriangles() {
     var c1 = getSetCenter(inputTriangles[1]);
     var m1 = mat4.create();
     
-    mat4.translate(m1, m1, [-0.25, -0.45, 0.0]);          // 4. Translate to target region
-    mat4.rotateZ(m1, m1, 45 * Math.PI / 180);             // 3. Rotate 45 degrees into diamond
-    mat4.scale(m1, m1, [1.8, 1.8, 1.0]);                  // 2. Scale up to target diamond size
-    mat4.translate(m1, m1, [-c1[0], -c1[1], -c1[2]]);     // 1. Move dynamic center to origin
+    mat4.translate(m1, m1, [-0.30, -0.48, 0.0]);          // 4. Translate to lower-center
+    mat4.rotateZ(m1, m1, 45 * Math.PI / 180);             // 3. Rotate 45 deg to diamond
+    mat4.scale(m1, m1, [1.5, 1.5, 1.0]);                  // 2. Scale diamond
+    mat4.translate(m1, m1, [-c1[0], -c1[1], -c1[2]]);     // 1. Center at origin
     
     inputTriangles[1].mMatrix = m1;
 
@@ -240,7 +240,6 @@ function renderTriangles() {
         gl.drawElements(gl.TRIANGLES, 3 * triSetSizes[whichTriSet], gl.UNSIGNED_SHORT, 0);
     } // end for each tri set
 } // end render triangles
-
 
 /* MAIN -- HERE is where execution begins after window load */
 
