@@ -136,12 +136,10 @@ function setupShaders() {
     `;
     
     try {
-        // console.log("fragment shader: "+fShaderCode);
         var fShader = gl.createShader(gl.FRAGMENT_SHADER); // create frag shader
         gl.shaderSource(fShader,fShaderCode); // attach code to shader
         gl.compileShader(fShader); // compile the code for gpu execution
 
-        // console.log("vertex shader: "+vShaderCode);
         var vShader = gl.createShader(gl.VERTEX_SHADER); // create vertex shader
         gl.shaderSource(vShader,vShaderCode); // attach code to shader
         gl.compileShader(vShader); // compile the code for gpu execution
@@ -176,75 +174,54 @@ function setupShaders() {
     } // end catch
 } // end setup shaders
 
-// =========================================================
-// 1. First Set (Triangle - Lower Left)
-// =========================================================
-inputTriangles[0].mMatrix = mat4.create();
-var set0Center = vec3.fromValues(0.25, 0.75, 0);
+// render the loaded model
+function renderTriangles() {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
+    
+    // =========================================================
+    // 1. Model Matrix for Set 0 (Triangle - Lower Left)
+    // =========================================================
+    var m0 = mat4.create();
+    mat4.translate(m0, m0, [-0.65, -0.25, 0.0]);           // Position in lower-left quadrant
+    mat4.rotateZ(m0, m0, 135 * Math.PI / 180);             // Rotate ~135 degrees
+    mat4.scale(m0, m0, [1.6, 1.6, 1.0]);                   // Scale up to target size
+    mat4.translate(m0, m0, [-0.25, -0.75, 0.0]);           // Center set 0 [0.25, 0.75] at origin
+    inputTriangles[0].mMatrix = m0;
 
-// Translate center to origin
-mat4.fromTranslation(inputTriangles[0].mMatrix, vec3.negate(vec3.create(), set0Center));
+    // =========================================================
+    // 2. Model Matrix for Set 1 (Square / Diamond - Lower Center)
+    // =========================================================
+    var m1 = mat4.create();
+    mat4.translate(m1, m1, [-0.25, -0.5, 0.0]);            // Position in lower-center area
+    mat4.rotateZ(m1, m1, 45 * Math.PI / 180);              // Rotate 45 degrees to form diamond
+    mat4.scale(m1, m1, [1.8, 1.8, 1.0]);                   // Scale up to target size
+    mat4.translate(m1, m1, [-0.75, -0.25, 0.0]);           // Center set 1 [0.75, 0.25] at origin
+    inputTriangles[1].mMatrix = m1;
 
-// Scale (increased from 0.5 -> 0.75)
-mat4.multiply(
-    inputTriangles[0].mMatrix,
-    mat4.fromScaling(mat4.create(), vec3.fromValues(0.75, 0.75, 1.0)),
-    inputTriangles[0].mMatrix
-);
+    // =========================================================
+    // 3. Render loop
+    // =========================================================
+    for (var whichTriSet=0; whichTriSet<numTriangleSets; whichTriSet++) { 
+        
+        // pass modeling matrix for set to shader
+        gl.uniformMatrix4fv(modelMatrixULoc, false, inputTriangles[whichTriSet].mMatrix);
 
-// Rotate ~135 degrees
-mat4.multiply(
-    inputTriangles[0].mMatrix,
-    mat4.fromRotation(mat4.create(), 135 * Math.PI / 180, vec3.fromValues(0, 0, 1)),
-    inputTriangles[0].mMatrix
-);
+        // vertex buffer: activate and feed into vertex shader
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[whichTriSet]);
+        gl.vertexAttribPointer(vertexPositionAttrib, 3, gl.FLOAT, false, 0, 0);
 
-// Translate to position
-mat4.multiply(
-    inputTriangles[0].mMatrix,
-    mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.6, -0.2, 0.0)),
-    inputTriangles[0].mMatrix
-);
-
-
-// =========================================================
-// 2. Second Set (Square / Diamond - Lower Center)
-// =========================================================
-inputTriangles[1].mMatrix = mat4.create();
-var set1Center = vec3.fromValues(0.75, 0.25, 0);
-
-// Translate center to origin
-mat4.fromTranslation(inputTriangles[1].mMatrix, vec3.negate(vec3.create(), set1Center));
-
-// Scale (increased from 0.5 -> 0.85)
-mat4.multiply(
-    inputTriangles[1].mMatrix,
-    mat4.fromScaling(mat4.create(), vec3.fromValues(0.85, 0.85, 1.0)),
-    inputTriangles[1].mMatrix
-);
-
-// Rotate 45 degrees into a diamond
-mat4.multiply(
-    inputTriangles[1].mMatrix,
-    mat4.fromRotation(mat4.create(), 45 * Math.PI / 180, vec3.fromValues(0, 0, 1)),
-    inputTriangles[1].mMatrix
-);
-
-// Translate to position
-mat4.multiply(
-    inputTriangles[1].mMatrix,
-    mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.25, -0.4, 0.0)),
-    inputTriangles[1].mMatrix
-);
+        // triangle buffer: activate and render
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleBuffers[whichTriSet]);
+        gl.drawElements(gl.TRIANGLES, 3 * triSetSizes[whichTriSet], gl.UNSIGNED_SHORT, 0);
+    } // end for each tri set
+} // end render triangles
 
 
 /* MAIN -- HERE is where execution begins after window load */
 
 function main() {
-  
   setupWebGL(); // set up the webGL environment
   loadTriangles(); // load in the triangles from tri file
   setupShaders(); // setup the webGL shaders
   renderTriangles(); // draw the triangles using webGL
-  
 } // end main
