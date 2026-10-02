@@ -180,32 +180,75 @@ function setupShaders() {
 function renderTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
     
-    // define the modeling matrix for the first set 
-    inputTriangles[0].mMatrix = mat4.create(); // modeling mat for tri set
-    var setCenter = vec3.fromValues(.25,.75,0);  // center coords of tri set 
-    mat4.fromTranslation(inputTriangles[0].mMatrix,vec3.negate(vec3.create(),setCenter)); // translate to origin
-    mat4.multiply(inputTriangles[0].mMatrix,
-                  mat4.fromRotation(mat4.create(),Math.PI/2,vec3.fromValues(0,0,1)),
-                  inputTriangles[0].mMatrix); // rotate 90 degs
-    mat4.multiply(inputTriangles[0].mMatrix,
-                  mat4.fromTranslation(mat4.create(),setCenter),
-                  inputTriangles[0].mMatrix); // move back to center
-        
-    // define the modeling matrix for the second set
-    inputTriangles[1].mMatrix = mat4.create();
+    // 1. Model Matrix for First Set (Triangle - Lower Left)
+    inputTriangles[0].mMatrix = mat4.create();
+    var set0Center = vec3.fromValues(0.25, 0.75, 0); // center coords of tri set 0
     
+    // Step A: Translate triangle to origin (0, 0, 0)
+    mat4.fromTranslation(inputTriangles[0].mMatrix, vec3.negate(vec3.create(), set0Center));
+    
+    // Step B: Scale down
+    mat4.multiply(
+        inputTriangles[0].mMatrix,
+        mat4.fromScaling(mat4.create(), vec3.fromValues(0.5, 0.5, 1.0)),
+        inputTriangles[0].mMatrix
+    );
+    
+    // Step C: Rotate (~135 degrees) to orient the tip pointing down-left
+    mat4.multiply(
+        inputTriangles[0].mMatrix,
+        mat4.fromRotation(mat4.create(), 135 * Math.PI / 180, vec3.fromValues(0, 0, 1)),
+        inputTriangles[0].mMatrix
+    );
+    
+    // Step D: Translate to target position in lower-left quadrant
+    mat4.multiply(
+        inputTriangles[0].mMatrix,
+        mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.65, -0.3, 0.0)),
+        inputTriangles[0].mMatrix
+    );
+
+    // 2. Model Matrix for Second Set (Square / Diamond - Lower Center)
+    inputTriangles[1].mMatrix = mat4.create();
+    var set1Center = vec3.fromValues(0.75, 0.25, 0); // center coords of tri set 1
+    
+    // Step A: Translate square to origin (0, 0, 0)
+    mat4.fromTranslation(inputTriangles[1].mMatrix, vec3.negate(vec3.create(), set1Center));
+    
+    // Step B: Scale down
+    mat4.multiply(
+        inputTriangles[1].mMatrix,
+        mat4.fromScaling(mat4.create(), vec3.fromValues(0.5, 0.5, 1.0)),
+        inputTriangles[1].mMatrix
+    );
+    
+    // Step C: Rotate 45 degrees to stand on its corner (diamond shape)
+    mat4.multiply(
+        inputTriangles[1].mMatrix,
+        mat4.fromRotation(mat4.create(), 45 * Math.PI / 180, vec3.fromValues(0, 0, 1)),
+        inputTriangles[1].mMatrix
+    );
+    
+    // Step D: Translate to target position in lower-center area
+    mat4.multiply(
+        inputTriangles[1].mMatrix,
+        mat4.fromTranslation(mat4.create(), vec3.fromValues(-0.25, -0.5, 0.0)),
+        inputTriangles[1].mMatrix
+    );
+
+    // 3. Render both sets
     for (var whichTriSet=0; whichTriSet<numTriangleSets; whichTriSet++) { 
         
-        // pass modeling matrix for set to shadeer
+        // pass modeling matrix for set to shader
         gl.uniformMatrix4fv(modelMatrixULoc, false, inputTriangles[whichTriSet].mMatrix);
 
         // vertex buffer: activate and feed into vertex shader
-        gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[whichTriSet]); // activate
-        gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); // feed
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[whichTriSet]);
+        gl.vertexAttribPointer(vertexPositionAttrib, 3, gl.FLOAT, false, 0, 0);
 
         // triangle buffer: activate and render
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,triangleBuffers[whichTriSet]); // activate
-        gl.drawElements(gl.TRIANGLES,3*triSetSizes[whichTriSet],gl.UNSIGNED_SHORT,0); // render
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleBuffers[whichTriSet]);
+        gl.drawElements(gl.TRIANGLES, 3 * triSetSizes[whichTriSet], gl.UNSIGNED_SHORT, 0);
     } // end for each tri set
 } // end render triangles
 
