@@ -174,27 +174,58 @@ function setupShaders() {
     } // end catch
 } // end setup shaders
 
+// Helper function to calculate bounding-box center of a triangle set
+function getSetCenter(triSet) {
+    var minX = Infinity, maxX = -Infinity;
+    var minY = Infinity, maxY = -Infinity;
+    var minZ = Infinity, maxZ = -Infinity;
+    
+    for (var i = 0; i < triSet.vertices.length; i++) {
+        var v = triSet.vertices[i];
+        if (v[0] < minX) minX = v[0];
+        if (v[0] > maxX) maxX = v[0];
+        if (v[1] < minY) minY = v[1];
+        if (v[1] > maxY) maxY = v[1];
+        if (v[2] < minZ) minZ = v[2];
+        if (v[2] > maxZ) maxZ = v[2];
+    }
+    
+    return [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2];
+}
+
 // render the loaded model
 function renderTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
-   
-    // Model Matrix for Set 0 (Triangle - Lower Left)
+    
+    // =========================================================
+    // 1. Model Matrix for Set 0 (Triangle - Upper-Left of pair)
+    // =========================================================
+    var c0 = getSetCenter(inputTriangles[0]);
     var m0 = mat4.create();
-    mat4.translate(m0, m0, [-0.60, -0.20, 0.0]);          // 4. Move to lower-left location
+    
+    mat4.translate(m0, m0, [-0.65, -0.20, 0.0]);          // 4. Translate to target region
     mat4.rotateZ(m0, m0, 135 * Math.PI / 180);            // 3. Rotate 135 degrees
-    mat4.scale(m0, m0, [0.85, 0.85, 1.0]);                // 2. Scale slightly down from original
-    mat4.translate(m0, m0, [-0.25, -0.75, 0.0]);          // 1. Move original mesh center [0.25, 0.75] to (0,0)
+    mat4.scale(m0, m0, [1.2, 1.2, 1.0]);                  // 2. Scale size
+    mat4.translate(m0, m0, [-c0[0], -c0[1], -c0[2]]);     // 1. Move dynamic center to origin
+    
     inputTriangles[0].mMatrix = m0;
 
-    // Model Matrix for Set 1 (Square / Diamond - Lower Center)
+    // =========================================================
+    // 2. Model Matrix for Set 1 (Diamond - Lower Center)
+    // =========================================================
+    var c1 = getSetCenter(inputTriangles[1]);
     var m1 = mat4.create();
-    mat4.translate(m1, m1, [-0.25, -0.40, 0.0]);          // 4. Move to lower-center location
+    
+    mat4.translate(m1, m1, [-0.25, -0.45, 0.0]);          // 4. Translate to target region
     mat4.rotateZ(m1, m1, 45 * Math.PI / 180);             // 3. Rotate 45 degrees into diamond
-    mat4.scale(m1, m1, [1.0, 1.0, 1.0]);                  // 2. Keep standard 1.0 scale
-    mat4.translate(m1, m1, [-0.75, -0.25, 0.0]);          // 1. Move original mesh center [0.75, 0.25] to (0,0)
+    mat4.scale(m1, m1, [1.8, 1.8, 1.0]);                  // 2. Scale up to target diamond size
+    mat4.translate(m1, m1, [-c1[0], -c1[1], -c1[2]]);     // 1. Move dynamic center to origin
+    
     inputTriangles[1].mMatrix = m1;
 
-    // Render loop
+    // =========================================================
+    // 3. Render loop
+    // =========================================================
     for (var whichTriSet=0; whichTriSet<numTriangleSets; whichTriSet++) { 
         
         // pass modeling matrix for set to shader
